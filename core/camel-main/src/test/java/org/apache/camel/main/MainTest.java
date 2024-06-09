@@ -136,6 +136,7 @@ public class MainTest {
         CamelContext camelContext = main.getCamelContext();
         // should load application.properties from classpath
         assertEquals("World", camelContext.resolvePropertyPlaceholders("{{hello}}"));
+        System.out.println("Value=" + main.configure().httpServer().authentication().isTestValue());
 
         main.stop();
     }
