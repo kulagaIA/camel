@@ -31,7 +31,7 @@ public class HttpServerAuthenticationConfigurationProperties implements Bootstra
     @Metadata
     private boolean enabled;
 
-    private boolean 
+    private HttpServerBasicAuthenticationProperties basic;
 
     public HttpServerAuthenticationConfigurationProperties(HttpServerConfigurationProperties parent) {
         this.parent = parent;
@@ -43,6 +43,10 @@ public class HttpServerAuthenticationConfigurationProperties implements Bootstra
 
     @Override
     public void close() {
+        if (basic != null) {
+            basic.close();
+            basic = null;
+        }
         parent = null;
     }
 
@@ -65,6 +69,36 @@ public class HttpServerAuthenticationConfigurationProperties implements Bootstra
         return this;
     }
 
+    /**
+     * To configure embedded HTTP server authentication (for standalone applications; not Spring Boot or Quarkus)
+     */
+    public HttpServerBasicAuthenticationProperties basic() {
+        if (basic == null) {
+            basic = new HttpServerBasicAuthenticationProperties(this);
+        }
+        return basic;
+    }
+
+    public HttpServerBasicAuthenticationProperties getBasic() {
+        return basic;
+    }
+
+    /**
+     * To configure embedded HTTP server authentication (for standalone applications; not Spring Boot or Quarkus)
+     */
+    public void setBasic(
+            HttpServerBasicAuthenticationProperties basic) {
+        this.basic = basic;
+    }
+
+    /**
+     * To configure embedded HTTP server authentication (for standalone applications; not Spring Boot or Quarkus)
+     */
+    public HttpServerAuthenticationConfigurationProperties withBasicAuthenticationProperties(
+            HttpServerBasicAuthenticationProperties basicAuthenticationProperties) {
+        this.basic = basicAuthenticationProperties;
+        return this;
+    }
 
 
 }

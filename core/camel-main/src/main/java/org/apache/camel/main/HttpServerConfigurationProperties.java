@@ -51,7 +51,6 @@ public class HttpServerConfigurationProperties implements BootstrapCloseable {
 
     public HttpServerConfigurationProperties(MainConfigurationProperties parent) {
         this.parent = parent;
-        authentication = new HttpServerAuthenticationConfigurationProperties(this);
     }
 
     public MainConfigurationProperties end() {
