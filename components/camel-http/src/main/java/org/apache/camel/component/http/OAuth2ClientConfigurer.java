@@ -47,7 +47,7 @@ public class OAuth2ClientConfigurer implements HttpClientConfigurer {
     private final boolean cacheTokens;
     private final Long cachedTokensDefaultExpirySeconds;
     private final Long cachedTokensExpirationMarginSeconds;
-    private final Map<URI, TokenCache> tokenCache = new HashMap<>();
+    private final static Map<OAuth2URIAndCredentials, TokenCache> tokenCache = new HashMap<>();
 
     public OAuth2ClientConfigurer(String clientId, String clientSecret, String tokenEndpoint, String scope, boolean cacheTokens, long cachedTokensDefaultExpirySeconds, long cachedTokensExpirationMarginSeconds) {
         this.clientId = clientId;
@@ -64,17 +64,18 @@ public class OAuth2ClientConfigurer implements HttpClientConfigurer {
         HttpClient httpClient = clientBuilder.build();
         clientBuilder.addRequestInterceptorFirst((HttpRequest request, EntityDetails entity, HttpContext context) -> {
             URI requestUri = getUriFromRequest(request);
+            OAuth2URIAndCredentials uriAndCredentials = new OAuth2URIAndCredentials(requestUri, clientId, clientSecret);
             if (cacheTokens) {
-                if (tokenCache.containsKey(requestUri) && !tokenCache.get(requestUri).isExpiredWithMargin(cachedTokensExpirationMarginSeconds)) {
-                    request.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + tokenCache.get(requestUri).getToken());
+                if (tokenCache.containsKey(uriAndCredentials) && !tokenCache.get(uriAndCredentials).isExpiredWithMargin(cachedTokensExpirationMarginSeconds)) {
+                    request.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + tokenCache.get(uriAndCredentials).getToken());
                 } else {
                     JsonObject accessTokenResponse = getAccessTokenResponse(httpClient);
                     String accessToken = accessTokenResponse.getString("access_token");
                     String expiresIn = accessTokenResponse.getString("expires_in");
                     if (expiresIn != null && !expiresIn.isEmpty()) {
-                        tokenCache.put(requestUri, new TokenCache(accessToken, expiresIn));
+                        tokenCache.put(uriAndCredentials, new TokenCache(accessToken, expiresIn));
                     } else if (cachedTokensDefaultExpirySeconds > 0) {
-                        tokenCache.put(requestUri, new TokenCache(accessToken, cachedTokensDefaultExpirySeconds));
+                        tokenCache.put(uriAndCredentials, new TokenCache(accessToken, cachedTokensDefaultExpirySeconds));
                     }
                     request.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
                 }
@@ -175,5 +176,7 @@ public class OAuth2ClientConfigurer implements HttpClientConfigurer {
             this.expirationTime = expirationTime;
         }
     }
+
+    private record OAuth2URIAndCredentials(URI uri, String clientId, String clientSecret) {}
 
 }

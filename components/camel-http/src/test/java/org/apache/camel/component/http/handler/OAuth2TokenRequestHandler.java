@@ -49,7 +49,7 @@ public class OAuth2TokenRequestHandler implements HttpRequestHandler {
     @Override
     public void handle(ClassicHttpRequest request, ClassicHttpResponse response, HttpContext context)
             throws HttpException, IOException {
-
+        System.out.println("ABOBA=========================================================================================");
         String requestBody = EntityUtils.toString(request.getEntity());
         WWWFormCodec.parse(requestBody, StandardCharsets.UTF_8).stream()
                 .filter(pair -> pair.getName().equals("grant_type") && pair.getValue().equals("client_credentials"))
